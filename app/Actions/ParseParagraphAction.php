@@ -8,7 +8,8 @@ final class ParseParagraphAction
 {
     private static array $phonetics = [
         'PHP' => 'Pee aitch pee',
-        'enums' => 'eanums',
+        'enum' => 'eenum',
+        'Enum' => 'eenum',
     ];
 
     public function __invoke(string $paragraph): ParsedParagraph

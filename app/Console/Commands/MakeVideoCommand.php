@@ -64,8 +64,6 @@ class MakeVideoCommand extends Command
         $subtitlesPath = storage_path("videos/{$id}/{$id}-subs.txt");
         $saveSubtitles($subtitles, $subtitlesPath);
 
-        // TODO: thumbnail
-
         $this->info("Done");
         foreach ($outputPaths as $outputPath) {
             $this->comment(" - {$outputPath}");
