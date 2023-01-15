@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Actions\RenderSlideAudioAction;
 use App\Actions\RenderSlideImageAction;
 use App\Actions\RenderVideoAction;
+use App\Actions\SaveSubtitlesAction;
 use Illuminate\Console\Command;
 
 class MakeVideoCommand extends Command
@@ -15,35 +16,43 @@ class MakeVideoCommand extends Command
         RenderSlideImageAction $renderSlideImage,
         RenderSlideAudioAction $renderSlideAudio,
         RenderVideoAction $renderVideo,
+        SaveSubtitlesAction $saveSubtitles,
     ): void
     {
         $id = $this->argument('id');
 
-        // 1. Split input script into paragraphs and code blocks
-        // 2. Render code blocks as PNGs
-        // 3. Convert each paragraph to WAV
-        // 4. Stitch WAVs and PNGs together ✅
-        // 5. Merge all separate parts into one ✅
-
         $paragraphs = explode('---', file_get_contents(storage_path("videos/{$id}/{$id}.md")));
+
+        $subtitles = [];
 
         foreach ($paragraphs as $index => $paragraph) {
             [$text, $code] = explode('```php', $paragraph);
+            $subtitles[] = $text;
             $code = '```php' . $code;
 
             // Image
             $imagePath = storage_path("videos/{$id}/{$index}.jpg");
-            $this->info("Creating {$imagePath}");
+            $this->comment("Creating {$imagePath}");
             $renderSlideImage($code, $imagePath);
 
             // Audio
             $audioPath = storage_path("videos/{$id}/{$index}.wav");
-            $this->info("Creating {$audioPath}");
+            $this->comment("Creating {$audioPath}");
             $renderSlideAudio($text, $audioPath);
         }
 
-        $renderVideo($id);
+        $this->comment("Rendering Video");
+        $outputPath = storage_path("videos/{$id}/{$id}-finished.mp4");
+        $renderVideo($id, $outputPath);
 
-        $this->info('Done');
+        $this->comment("Saving subtitles");
+        $subtitlesPath = storage_path("videos/{$id}/{$id}-subs.txt");
+        $saveSubtitles($subtitles, $subtitlesPath);
+
+        // TODO: thumbnail
+
+        $this->info("Done");
+        $this->comment(" - {$outputPath}");
+        $this->comment(" - {$subtitlesPath}");
     }
 }

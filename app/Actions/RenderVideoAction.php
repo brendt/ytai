@@ -4,11 +4,10 @@ namespace App\Actions;
 
 final class RenderVideoAction
 {
-    public function __invoke(string $videoId): void
+    public function __invoke(string $videoId, string $outputPath): void
     {
         $parts = [];
         $filesPath = storage_path("videos/{$videoId}/files.txt");
-        $outputPath = storage_path("videos/{$videoId}/{$videoId}-finished.mp4");
 
         @unlink($outputPath);
         @unlink($filesPath);
@@ -23,7 +22,7 @@ final class RenderVideoAction
 
             $this->ffmpeg(
                 '-loop 1',
-                '-framerate 60',
+                '-framerate 30',
                 "-i {$imagePath}",
                 "-i {$audioPath}",
                 "-c:v libx264",

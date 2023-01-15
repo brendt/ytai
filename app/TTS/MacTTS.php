@@ -11,6 +11,7 @@ final class MacTTS implements TTSDriver
             '-o "' . $outputPath . '"',
             '--file-format WAVE',
             '--data-format I16',
+            '-v "Daniel"',
             '"' . $text . '"',
         ]);
 
