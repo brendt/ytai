@@ -17,7 +17,7 @@ final class ImageController
             case <hljs prop>PUBLISHED</hljs>;
             case <hljs prop>ARCHIVED</hljs>;
 
-            public function color(): string { /* ... */ }
+            public function color(): string { /* ... */ } // hello world
         }
         ```
         MD)->getContent();
@@ -34,9 +34,9 @@ final class ImageController
 
         Browsershot::html($html)
             ->deviceScaleFactor(2)
-            ->windowSize(1920, 1080)
+            ->windowSize(1080, 1920)
             ->setOption('args', ['--disable-web-security'])
-            ->delay(100)
+            ->delay(500)
             ->save($path);
 
         return response()->file($path);
