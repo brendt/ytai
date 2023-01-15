@@ -2,17 +2,20 @@
 
 namespace App\Console\Commands;
 
+use App\Actions\ParseParagraphAction;
 use App\Actions\RenderSlideAudioAction;
 use App\Actions\RenderSlideImageAction;
 use App\Actions\RenderVideoAction;
 use App\Actions\SaveSubtitlesAction;
+use App\Enums\Format;
 use Illuminate\Console\Command;
 
 class MakeVideoCommand extends Command
 {
-    protected $signature = 'make:video {id}';
+    protected $signature = 'make:video {id} {formats=youtube}';
 
     public function handle(
+        ParseParagraphAction $parseParagraph,
         RenderSlideImageAction $renderSlideImage,
         RenderSlideAudioAction $renderSlideAudio,
         RenderVideoAction $renderVideo,
@@ -21,29 +24,41 @@ class MakeVideoCommand extends Command
     {
         $id = $this->argument('id');
 
+        /** @var Format[] $formats */
+        $formats = array_map(
+            fn(string $format) => Format::from($format),
+            explode(',', $this->argument('formats')),
+        );
+
         $paragraphs = explode('---', file_get_contents(storage_path("videos/{$id}/{$id}.md")));
 
         $subtitles = [];
 
         foreach ($paragraphs as $index => $paragraph) {
-            [$text, $code] = explode('```php', $paragraph);
-            $subtitles[] = $text;
-            $code = '```php' . $code;
+            $parsedParagraph = $parseParagraph($paragraph);
+            $subtitles[] = $parsedParagraph->textForSubs;
 
             // Image
-            $imagePath = storage_path("videos/{$id}/{$index}.jpg");
-            $this->comment("Creating {$imagePath}");
-            $renderSlideImage($code, $imagePath);
+            foreach ($formats as $format) {
+                $imagePath = storage_path("videos/{$id}/{$index}-{$format->getDimensions()}.jpg");
+                $this->comment("Creating {$imagePath}");
+                $renderSlideImage($parsedParagraph->code, $imagePath, $format->getDimensions());
+            }
 
             // Audio
             $audioPath = storage_path("videos/{$id}/{$index}.wav");
             $this->comment("Creating {$audioPath}");
-            $renderSlideAudio($text, $audioPath);
+            $renderSlideAudio($parsedParagraph->textForAudio, $audioPath);
         }
 
-        $this->comment("Rendering Video");
-        $outputPath = storage_path("videos/{$id}/{$id}-finished.mp4");
-        $renderVideo($id, $outputPath);
+        $outputPaths = [];
+
+        foreach ($formats as $format) {
+            $this->comment("Rendering Video for {$format->getDimensions()}");
+            $outputPath = storage_path("videos/{$id}/{$id}-{$format->getDimensions()}-finished.mp4");
+            $renderVideo($id, $outputPath, $format->getDimensions());
+            $outputPaths[] = $outputPath;
+        }
 
         $this->comment("Saving subtitles");
         $subtitlesPath = storage_path("videos/{$id}/{$id}-subs.txt");
@@ -52,7 +67,9 @@ class MakeVideoCommand extends Command
         // TODO: thumbnail
 
         $this->info("Done");
-        $this->comment(" - {$outputPath}");
+        foreach ($outputPaths as $outputPath) {
+            $this->comment(" - {$outputPath}");
+        }
         $this->comment(" - {$subtitlesPath}");
     }
 }

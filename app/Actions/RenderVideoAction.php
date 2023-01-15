@@ -2,10 +2,15 @@
 
 namespace App\Actions;
 
+use App\Data\Dimensions;
+
 final class RenderVideoAction
 {
-    public function __invoke(string $videoId, string $outputPath): void
-    {
+    public function __invoke(
+        string $videoId,
+        string $outputPath,
+        Dimensions $dimensions
+    ): void {
         $parts = [];
         $filesPath = storage_path("videos/{$videoId}/files.txt");
 
@@ -14,9 +19,9 @@ final class RenderVideoAction
 
         foreach (glob(storage_path("videos/{$videoId}/*.wav")) as $path) {
             $filename = pathinfo($path, PATHINFO_FILENAME);
-            $imagePath = storage_path("videos/{$videoId}/{$filename}.jpg");
+            $imagePath = storage_path("videos/{$videoId}/{$filename}-{$dimensions}.jpg");
             $audioPath = storage_path("videos/{$videoId}/{$filename}.wav");
-            $combinedPath = storage_path("videos/{$videoId}/{$filename}-combined.mp4");
+            $combinedPath = storage_path("videos/{$videoId}/{$filename}-{$dimensions}-combined.mp4");
 
             @unlink($combinedPath);
 
