@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CodeController;
 use App\Http\Controllers\ImageController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/image', ImageController::class);
+Route::get('/code/{slug}', CodeController::class);
 
 Route::get('/', function () {
     return view('welcome');

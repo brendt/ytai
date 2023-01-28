@@ -9,6 +9,7 @@ use App\Actions\RenderVideoAction;
 use App\Actions\SaveSubtitlesAction;
 use App\Enums\Format;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 
 class MakeVideoCommand extends Command
 {
@@ -35,6 +36,8 @@ class MakeVideoCommand extends Command
         $subtitles = [];
 
         foreach ($paragraphs as $index => $paragraph) {
+            $index = Str::padLeft($index, 4, '0');
+
             $parsedParagraph = $parseParagraph($paragraph);
             $subtitles[] = $parsedParagraph->textForSubs;
 
